@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        div{
+            text-align: center;
+        }
+        button{
+            margin: 10px;
+        }
+    </style>
+</head>
+<body style="border: 0;margin: 0;">
+    <div style="display: flex;position: absolute;width: 1500px;height: 400px;left: 50%; top: 50%; margin-left:-750px;margin-top: -300px;" id="main">
+        <div>
+            表图
+        <div style="width: 300px;height: 300px; border: 1px black solid;margin: 10px;" id="outside">
+            <canvas style="height: 300px;width: 300px;" id="out"></canvas>
+        </div>    
+        </div>
+        <div>
+            里图 变暗:<input id="changeA" style="width: 30px;">%
+        <div style="width: 300px;height: 300px; border: 1px black solid;margin: 10px;" id="inside">
+            <canvas style="height: 300px;width: 300px;" id="in"></canvas>
+        </div>    
+        </div>
+
+        <div style="display: flex;flex-direction: column;justify-content: center;">
+           <button id="btn">制作幻影坦克</button> 
+           <button id="download">下载幻影坦克</button>
+           <button id="restart">重新制作 </button>
+        </div>
+        <div>
+            合成图
+            <div style="width: 300px;height: 300px; border: 1px black solid; margin-top: 10px;">
+                <canvas style="height: 300px;width: 300px;" id="canvas"></canvas>
+            </div>
+        </div>
+        <div>
+            黑色背景
+            <div style="background-color: black;width: 300px;height: 300px; margin-top: 10px;">
+                <!-- <canvas style="height: 100%;width: 100%;" id="canvas"></canvas> -->
+            </div>    
+        </div>
+
+    </div>
+
+    <script>
+        let main = document.querySelector('#main')
+        let outside = document.querySelector('#outside')
+        let out = document.querySelector('#out')
+        let outctx = out.getContext('2d',{willReadFrequently: true})
+        let inside = document.querySelector('#inside')
+        let In = document.querySelector('#in')
+        let inctx = In.getContext('2d', {willReadFrequently: true})
+        let btn = document.querySelector('#btn')
+        let canvas = document.querySelector('#canvas')
+        let ctx = canvas.getContext('2d', {willReadFrequently: true})
+        let download = document.querySelector('#download')
+        let devicePixelRatio = window.devicePixelRatio
+        let mainX = main.getBoundingClientRect().left
+        let restart = document.querySelector('#restart')
+        let changeA = document.querySelector('#changeA')
+
+        function photo(file,ctx,canvas,type){
+            let read = new FileReader()
+            read.readAsDataURL(file)
+            read.onload=((e)=>{
+                let url = e.target.result
+                let img = new Image()
+                img.src = url
+                img.onload = ()=>{
+                    canvas.width = img.width
+                    canvas.height = img.height
+                    ctx.drawImage(img,0,0,img.width,img.height)
+                    let data = ctx.getImageData(0,0,img.width,img.height)
+                    for(let i=0;i<data.data.length;i+=4){
+                        let r = data.data[i]
+                        let g = data.data[i+1]
+                        let b = data.data[i+2]
+                        let avg = .299 * r + .587 * g + .114 * b
+                        data.data[i] = avg
+                        data.data[i+1] = avg
+                        data.data[i+2] = avg
+                    }
+                    ctx.putImageData(data,0,0)
+                }
+            })
+        } //将图片设置成灰度图
+
+        function changeimageDataA(num){
+            let data = inctx.getImageData(0,0,In.width,In.height)
+            num = num/100
+            for(let i=0;i<data.data.length;i+=4){
+                data.data[i]=data.data[i]*num
+                data.data[i+1]=data.data[i+1]*num
+                data.data[i+2]=data.data[i+2]*num
+            }
+            inctx.putImageData(data,0,0)
+        }//改变里图的色值
+
+        /*
+          拖拽功能
+        */
+
+        let isDragging = false;
+        let x,startX  
+
+        canvas.addEventListener('mousedown', mouseDown);
+        canvas.addEventListener('mousemove', mouseMove);
+        canvas.addEventListener('mouseup', mouseUp);
+
+        async function mouseDown(e) {
+            isDragging = true
+            startX = await canvas.getBoundingClientRect().left
+            x = startX - mainX
+            startX = e.clientX
+            canvas.style.position='absolute'
+            canvas.style.left = x+'px'
+        }
+
+        function mouseMove(e) {
+        if (!isDragging) return
+            canvas.style.left =e.clientX + x - startX+'px'
+        }
+
+        function mouseUp(e) {
+            isDragging = false
+            startX= canvas.getBoundingClientRect().left
+        }
+
+        changeA.addEventListener('input',(e)=>{
+            let value = e.target.value
+            let match = value.match(/[0-9]/g)
+            if(match){
+                let number =Number(match.join('')) 
+                number = number>100?100:number<0?0:number
+                if(number) changeA.value = number          
+            }
+        })//改变里图的透明度
+
+        changeA.addEventListener('blur',()=>{
+            let value = changeA.value
+            changeimageDataA(value)
+        })
+
+        /*
+            下载
+        */
+
+        download.addEventListener('click',async()=>{
+            let a = document.createElement('a')
+            let url =await canvas.toDataURL('image/png')
+            a.download = true
+            a.href = url
+            a.click()
+        })
+
+        btn.addEventListener('click',()=>{
+            canvas.width = out.width
+            canvas.height = out.height
+            let outsideData = outctx.getImageData(0,0,out.width,out.height)
+            let insideData = inctx.getImageData(0,0,In.width,In.height)
+            let length = outsideData.data.length
+            for(let i=0;i<length;i+=4){
+               let a = insideData.data[i]-outsideData.data[i]+255
+               let r = (insideData.data[i]/a)*255
+               outsideData.data[i] = r
+               outsideData.data[i+1] = r
+               outsideData.data[i+2] = r
+               outsideData.data[i+3] = a
+            }
+            ctx.putImageData(outsideData,0,0)
+        }) //合成幻影坦克
+
+        restart.addEventListener('click',()=>{
+            ctx.clearRect(0,0,canvas.width,canvas.height)
+            inctx.clearRect(0,0,In.width,In.height)
+            outctx.clearRect(0,0,out.width,out.height) 
+        })//清空画布
+
+        outside.ondragover=(e)=>{
+            e.preventDefault() //阻止事件默认行为
+        }
+        outside.ondrop=(e)=>{
+            e.preventDefault() 
+            let file = e.dataTransfer.files[0]
+            photo(file,outctx,out,'outside')
+        }
+        outside.addEventListener('click',async()=>{
+            let filelist = await showOpenFilePicker() //会返回一个数组，储存着用户上传的文件
+            let file = await filelist[0].getFile() //会返回一个file对象。
+            photo(file,outctx,out,'outside')
+        })
+        inside.ondragover=(e)=>{
+            e.preventDefault() //阻止事件默认行为
+        }
+        inside.ondrop=(e)=>{
+            e.preventDefault() 
+            let file = e.dataTransfer.files[0]
+            photo(file,inctx,In,'inside')
+        }
+        inside.addEventListener('click',async()=>{
+            let filelist = await showOpenFilePicker() 
+            let file = await filelist[0].getFile()
+            photo(file,inctx,In,'inside')
+        })
+    </script>
+</body>
+</html>
