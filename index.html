@@ -18,11 +18,14 @@
 </head>
 <body style="border: 0;margin: 0;">
     <div style="height: 40px;text-align: center;">
-        <span>温馨提示:如果里图隐藏的不是很好可以让里图变暗，然后点击制作幻影坦克，还有幻影坦克是可以拖动的，可以拖动到黑色背景下，观察幻影坦克在黑色背景下的图案，另外里图和表图如果大小不一致会取宽高最小值作为幻影坦克的宽高</span>
+        <p>温馨提示:</p>
+        <p>如果里图隐藏的不是很好可以让里图变暗，然后点击制作幻影坦克。幻影坦克是可以拖动的，可以拖动到黑色背景下。</p>
+        <p>另外里图和表图如果大小不一致会取宽高最小值作为幻影坦克的宽高</p>
+        <p>如果想制作表图是灰白色，里图隐藏的话就可以设置表图的rgb</p>
     </div>
     <div style="display: flex;position: absolute;width: 1500px;height: 400px;left: 50%; top: 50%; margin-left:-750px;margin-top: -300px;" id="main">
         <div>
-            表图
+            表图 表图rgb值:<input id="changeRGb" style="width: 30px;">
         <div style="width: 300px;height: 300px; border: 1px black solid;margin: 10px;" id="outside">
             <canvas style="height: 300px;width: 300px;" id="out"></canvas>
         </div>  
@@ -54,7 +57,6 @@
         <div>
             黑色背景
             <div style="background-color: black;width: 300px;height: 300px; margin-top: 10px;">
-                <!-- <canvas style="height: 100%;width: 100%;" id="canvas"></canvas> -->
             </div>    
         </div>
     </div>
@@ -75,6 +77,8 @@
         let mainX = main.getBoundingClientRect().left
         let restart = document.querySelector('#restart')
         let changeA = document.querySelector('#changeA')
+        let radio = document.querySelector('#radio')
+        let changeRGb = document.querySelector('#changeRGb')
         let insideImageData
 
         function photo(file,ctx,canvas,type){
@@ -122,6 +126,11 @@
             inctx.putImageData(data,0,0)
         }//改变里图的色值
 
+        function changeImageRGb(num){
+            outctx.fillStyle = `rgba(${num},${num},${num},1)`
+            outctx.fillRect(0,0,out.width,out.height)
+        }
+
         /*
           拖拽功能
         */
@@ -163,6 +172,18 @@
             }
         })//改变里图的透明度
 
+        changeRGb.addEventListener('input',(e)=>{
+            let value = e.target.value
+            let match = value.match(/[0-9]/g)
+            if(match){
+                let number =Number(match.join('')) 
+                number = number>=255?254:number<0?0:number
+                if(number) changeRGb.value = number   
+                changeImageRGb(number)     
+            }
+            
+        })
+
         /*
             下载
         */
@@ -176,18 +197,24 @@
         })
 
         btn.addEventListener('click',()=>{
-            canvas.width = out.width
-            canvas.height = out.height
-            let outsideData = outctx.getImageData(0,0,out.width,out.height)
             let insideData = inctx.getImageData(0,0,In.width,In.height)
-            let width = Math.min(outsideData.width,insideData.width)
-            let height = Math.min(outsideData.height,insideData.height)
+            let outsideData
+            let width = insideData.width
+            let height = insideData.height
+            let rgb = changeRGb.value
+            if(!rgb){
+              outsideData = outctx.getImageData(0,0,out.width,out.height)  
+              width = Math.min(outsideData.width,insideData.width)
+              height = Math.min(outsideData.height,insideData.height)
+            } 
             document.querySelector('#tankWidth').innerHTML = width
             document.querySelector('#tankHeight').innerHTML = height
+            canvas.width = width
+            canvas.height = height
             let array = new ImageData(width, height)
             for(let i=0;i<height;i++){
                 for(let j=0;j<width*4;j+=4){
-                    let a = insideData.data[j+i*insideData.width*4]-outsideData.data[j+i*outsideData.width*4]+255
+                    let a =rgb?insideData.data[j+i*insideData.width*4]-rgb+255:insideData.data[j+i*insideData.width*4]-outsideData.data[j+i*outsideData.width*4]+255 
                     let r = (insideData.data[j+i*insideData.width*4]/a)*255 
                     array.data[j+i*width*4] = r
                     array.data[j+i*width*4+1] = r
@@ -208,6 +235,9 @@
             document.querySelector('#insideHeight').innerHTML = ''
             document.querySelector('#outsideWidth').innerHTML = ''
             document.querySelector('#outsideHeight').innerHTML = ''
+            document.querySelector('#tankWidth').innerHTML = ''
+            document.querySelector('#tankHeight').innerHTML = ''
+            document.querySelector('#changeA').value = ''
         })//清空画布,同时让合成图归位
 
         outside.ondragover=(e)=>{
