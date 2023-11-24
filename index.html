@@ -11,21 +11,31 @@
         button{
             margin: 10px;
         }
+        .widthandheight{
+            margin: 10px;
+        }
     </style>
 </head>
 <body style="border: 0;margin: 0;">
+    <div style="height: 40px;text-align: center;">
+        <span>温馨提示:如果里图隐藏的不是很好可以让里图变暗，然后重新制作幻影坦克，还有幻影坦克是可以拖动的可以拖动到黑色背景下，观察幻影坦克在黑色背景下的图案</span>
+    </div>
     <div style="display: flex;position: absolute;width: 1500px;height: 400px;left: 50%; top: 50%; margin-left:-750px;margin-top: -300px;" id="main">
         <div>
             表图
         <div style="width: 300px;height: 300px; border: 1px black solid;margin: 10px;" id="outside">
             <canvas style="height: 300px;width: 300px;" id="out"></canvas>
-        </div>    
+        </div>  
+        宽:<span id="outsideWidth" class="widthandheight"></span>
+        高:<span id="outsideHeight" class="widthandheight"></span>  
         </div>
         <div>
             里图 变暗:<input id="changeA" style="width: 30px;">%
         <div style="width: 300px;height: 300px; border: 1px black solid;margin: 10px;" id="inside">
             <canvas style="height: 300px;width: 300px;" id="in"></canvas>
         </div>    
+        宽:<span id="insideWidth" class="widthandheight"></span>
+        高:<span id="insideHeight" class="widthandheight"></span> 
         </div>
 
         <div style="display: flex;flex-direction: column;justify-content: center;">
@@ -34,10 +44,12 @@
            <button id="restart">重新制作 </button>
         </div>
         <div>
-            合成图
+            幻影坦克
             <div style="width: 300px;height: 300px; border: 1px black solid; margin-top: 10px;">
                 <canvas style="height: 300px;width: 300px;" id="canvas"></canvas>
             </div>
+            宽:<span id="tankWidth" class="widthandheight"></span>
+            高:<span id="tankHeight" class="widthandheight"></span> 
         </div>
         <div>
             黑色背景
@@ -45,7 +57,6 @@
                 <!-- <canvas style="height: 100%;width: 100%;" id="canvas"></canvas> -->
             </div>    
         </div>
-
     </div>
 
     <script>
@@ -64,6 +75,7 @@
         let mainX = main.getBoundingClientRect().left
         let restart = document.querySelector('#restart')
         let changeA = document.querySelector('#changeA')
+        let insideImageData
 
         function photo(file,ctx,canvas,type){
             let read = new FileReader()
@@ -77,6 +89,14 @@
                     canvas.height = img.height
                     ctx.drawImage(img,0,0,img.width,img.height)
                     let data = ctx.getImageData(0,0,img.width,img.height)
+                    if(type=='inside'){
+                        insideImageData = data
+                        document.querySelector('#insideWidth').innerHTML = img.width
+                        document.querySelector('#insideHeight').innerHTML = img.height
+                    }else if(type=='outside'){
+                        document.querySelector('#outsideWidth').innerHTML = img.width
+                        document.querySelector('#outsideHeight').innerHTML = img.height
+                    }
                     for(let i=0;i<data.data.length;i+=4){
                         let r = data.data[i]
                         let g = data.data[i+1]
@@ -93,11 +113,11 @@
 
         function changeimageDataA(num){
             let data = inctx.getImageData(0,0,In.width,In.height)
-            num = num/100
+            num = (100-num)/100
             for(let i=0;i<data.data.length;i+=4){
-                data.data[i]=data.data[i]*num
-                data.data[i+1]=data.data[i+1]*num
-                data.data[i+2]=data.data[i+2]*num
+                data.data[i]=insideImageData.data[i]*num
+                data.data[i+1]=insideImageData.data[i+1]*num
+                data.data[i+2]=insideImageData.data[i+2]*num
             }
             inctx.putImageData(data,0,0)
         }//改变里图的色值
@@ -138,14 +158,10 @@
             if(match){
                 let number =Number(match.join('')) 
                 number = number>100?100:number<0?0:number
-                if(number) changeA.value = number          
+                if(number) changeA.value = number   
+                changeimageDataA(value)       
             }
         })//改变里图的透明度
-
-        changeA.addEventListener('blur',()=>{
-            let value = changeA.value
-            changeimageDataA(value)
-        })
 
         /*
             下载
@@ -164,23 +180,35 @@
             canvas.height = out.height
             let outsideData = outctx.getImageData(0,0,out.width,out.height)
             let insideData = inctx.getImageData(0,0,In.width,In.height)
-            let length = outsideData.data.length
-            for(let i=0;i<length;i+=4){
-               let a = insideData.data[i]-outsideData.data[i]+255
-               let r = (insideData.data[i]/a)*255
-               outsideData.data[i] = r
-               outsideData.data[i+1] = r
-               outsideData.data[i+2] = r
-               outsideData.data[i+3] = a
+            let width = Math.min(outsideData.width,insideData.width)
+            let height = Math.min(outsideData.height,insideData.height)
+            document.querySelector('#tankWidth').innerHTML = width
+            document.querySelector('#tankHeight').innerHTML = height
+            let array = new ImageData(width, height)
+            for(let i=0;i<height;i++){
+                for(let j=0;j<width*4;j+=4){
+                    let a = insideData.data[j+i*insideData.width*4]-outsideData.data[j+i*outsideData.width*4]+255
+                    let r = (insideData.data[j+i*insideData.width*4]/a)*255 
+                    array.data[j+i*width*4] = r
+                    array.data[j+i*width*4+1] = r
+                    array.data[j+i*width*4+2] = r
+                    array.data[j+i*width*4+3] = a
+                }
             }
-            ctx.putImageData(outsideData,0,0)
+            ctx.putImageData(array,0,0)
         }) //合成幻影坦克
 
         restart.addEventListener('click',()=>{
             ctx.clearRect(0,0,canvas.width,canvas.height)
             inctx.clearRect(0,0,In.width,In.height)
             outctx.clearRect(0,0,out.width,out.height) 
-        })//清空画布
+            canvas.style.position='absolute'
+            canvas.style.left = mainX+'px'
+            document.querySelector('#insideWidth').innerHTML = ''
+            document.querySelector('#insideHeight').innerHTML = ''
+            document.querySelector('#outsideWidth').innerHTML = ''
+            document.querySelector('#outsideHeight').innerHTML = ''
+        })//清空画布,同时让合成图归位
 
         outside.ondragover=(e)=>{
             e.preventDefault() //阻止事件默认行为
