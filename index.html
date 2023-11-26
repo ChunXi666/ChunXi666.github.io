@@ -121,6 +121,7 @@
             <div class="insidediv" style="border: 1px black solid;"id="outside">
                 <canvas id="out"></canvas>
             </div>  
+            <input id="outsideFile" type="file" style="width: 73px;">
             宽:<span id="outsideWidth" class="widthandheight"></span>
             高:<span id="outsideHeight" class="widthandheight"></span>  
         </div>
@@ -129,6 +130,7 @@
             <div class="insidediv" style="border: 1px black solid;" id="inside">
                 <canvas id="in"></canvas>
             </div>    
+            <input id="insideFile" type="file" style="width: 73px;">
             宽:<span id="insideWidth" class="widthandheight"></span>
             高:<span id="insideHeight" class="widthandheight"></span> 
         </div>
@@ -170,6 +172,8 @@
         let changeA = document.querySelector('#changeA')
         let radio = document.querySelector('#radio')
         let changeRGb = document.querySelector('#changeRGb')
+        let insideFile = document.querySelector('#insideFile')
+        let outsideFile = document.querySelector('#outsideFile')
         let insideImageData
 
         let width = canvas.width
@@ -282,7 +286,6 @@
                 if(number) changeRGb.value = number   
                 changeImageRGb(number)     
             }
-            
         })
 
         /*
@@ -341,6 +344,12 @@
             document.querySelector('#changeA').value = ''
         })//清空画布,同时让合成图归位
 
+        outsideFile.onchange=(e)=>{
+            let file = e.target.files[0]
+            outctx.clearRect(0,0,out.width,out.height)
+            rgb = null
+            photo(file,outctx,out,'outside')
+        }
         outside.ondragover=(e)=>{
             e.preventDefault() //阻止事件默认行为
         }
@@ -358,6 +367,11 @@
             rgb = null
             photo(file,outctx,out,'outside')
         })
+        insideFile.onchange=(e)=>{
+            let file = e.target.files[0]
+            inctx.clearRect(0,0,In.width,In.height)
+            photo(file,inctx,In,'inside')
+        }
         inside.ondragover=(e)=>{
             e.preventDefault() //阻止事件默认行为
         }
