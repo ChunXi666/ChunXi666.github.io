@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
     <title>Document</title>
     <style>
         div{
@@ -10,56 +12,148 @@
         }
         button{
             margin: 10px;
+            width: 60%;
+        }
+        canvas{
+            width: 300px;
+            height: 300px;
         }
         .widthandheight{
             margin: 10px;
+        }
+        .container{
+            width: 680px;
+            height: 300px;
+        }
+        .insidediv{
+            width: 300px;
+            height: 300px;
+        }
+        #main{
+            display: flex;
+            position: absolute;
+            /* flex-direction: column; */
+            width: 1500px;
+            height: 400px;
+            left: 50%;
+            top: 50%;
+            margin-left:-750px;
+            margin-top: -300px;
+        }
+        #btndiv{
+            position: absolute;
+            left: 50%;
+            top: 60%;
+            margin-left: -100px;
+            /* margin-top: ; */
+            width: 200px;
+            height: 100px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center
+        }
+        button{
+            width: 100%;
+            height: 100%;
+        }
+        @media only screen and (max-width: 1024px) {
+            #btndiv{
+                top: 85%;
+                flex-direction: row;
+            }
+            #main{
+                display: flex;
+                position: absolute;
+                flex-wrap: wrap;
+                width: 650px;
+                height: 800px;
+                left: 50%;
+                top: 50%;
+                margin-left: -325px;
+                margin-top: -400px;
+            }
+            .container{
+                flex-basis: 50%
+            }
+        }
+        @media only screen and (max-width:440px) {
+            #btndiv{
+                top: 85%;
+                flex-direction: row;
+            }
+            #main{
+                display: flex;
+                position: absolute;
+                flex-wrap: wrap;
+                width: 400px;
+                height: 600px;
+                left: 50%;
+                top: 50%;
+                margin-left: -200px;
+                margin-top: -200px;
+            }
+            .container{
+                flex-basis: 50%;
+                width: 200px;
+                height: 200px;
+            }
+            .insidediv{
+                width: 150px;
+                height: 150px;
+            }
+            canvas{
+                width: 150px;
+                height: 150px;
+            }
+            #btndiv{
+                top: 50%;
+                flex-direction: row;
+            }
         }
     </style>
 </head>
 <body style="border: 0;margin: 0;">
     <div style="height: 40px;text-align: center;">
-        <p>温馨提示:</p>
-        <p>如果里图隐藏的不是很好可以让里图变暗，然后点击制作幻影坦克。幻影坦克是可以拖动的，可以拖动到黑色背景下。</p>
-        <p>另外里图和表图如果大小不一致会取宽高最小值作为幻影坦克的宽高</p>
-        <p>如果想制作表图是灰白色，里图隐藏的话就可以设置表图的rgb</p>
+        <p>温馨提示:<a style="margin: 4px;" href="https://juejin.cn/post/7304635193419972618">原理</a><a style="margin: 4px;" href="https://github.com/ChunXi666/ChunXi666.github.io">源码，点个star求求了</a>里图变暗有益于隐藏。里图与表图大小不一的话会取宽高最小值作为幻影坦克的宽高。</p>
+        <p>如果想制作表图是灰白色，里图隐藏的话就可以设置表图的rgb，移动端竖屏，pc端幻影坦克可以移动.如果想在朋友圈显示需要宽高一致且小于等于1080</p>
     </div>
-    <div style="display: flex;position: absolute;width: 1500px;height: 400px;left: 50%; top: 50%; margin-left:-750px;margin-top: -300px;" id="main">
-        <div>
+    <div id="main">
+        <div  class="container">
             表图 表图rgb值:<input id="changeRGb" style="width: 30px;">
-        <div style="width: 300px;height: 300px; border: 1px black solid;margin: 10px;" id="outside">
-            <canvas style="height: 300px;width: 300px;" id="out"></canvas>
-        </div>  
-        宽:<span id="outsideWidth" class="widthandheight"></span>
-        高:<span id="outsideHeight" class="widthandheight"></span>  
+            <div class="insidediv" style="border: 1px black solid;"id="outside">
+                <canvas id="out"></canvas>
+            </div>  
+            宽:<span id="outsideWidth" class="widthandheight"></span>
+            高:<span id="outsideHeight" class="widthandheight"></span>  
         </div>
-        <div>
+        <div  class="container">
             里图 变暗:<input id="changeA" style="width: 30px;">%
-        <div style="width: 300px;height: 300px; border: 1px black solid;margin: 10px;" id="inside">
-            <canvas style="height: 300px;width: 300px;" id="in"></canvas>
-        </div>    
-        宽:<span id="insideWidth" class="widthandheight"></span>
-        高:<span id="insideHeight" class="widthandheight"></span> 
+            <div class="insidediv" style="border: 1px black solid;" id="inside">
+                <canvas id="in"></canvas>
+            </div>    
+            宽:<span id="insideWidth" class="widthandheight"></span>
+            高:<span id="insideHeight" class="widthandheight"></span> 
         </div>
-
-        <div style="display: flex;flex-direction: column;justify-content: center;">
-           <button id="btn">制作幻影坦克</button> 
-           <button id="download">下载幻影坦克</button>
-           <button id="restart">重新制作 </button>
-        </div>
-        <div>
+        <div  class="container">
             幻影坦克
-            <div style="width: 300px;height: 300px; border: 1px black solid; margin-top: 10px;">
-                <canvas style="height: 300px;width: 300px;" id="canvas"></canvas>
+            <div class="insidediv" style="border: 1px black solid;">
+                <canvas id="canvas"></canvas>
             </div>
             宽:<span id="tankWidth" class="widthandheight"></span>
             高:<span id="tankHeight" class="widthandheight"></span> 
         </div>
-        <div>
+        <div  class="container">
             黑色背景
-            <div style="background-color: black;width: 300px;height: 300px; margin-top: 10px;">
+            <div class="insidediv" style="background-color: black;">
             </div>    
         </div>
     </div>
+    <div id="btndiv" style="">
+        <button id="btn">制作幻影坦克</button> 
+        <button id="download">下载幻影坦克</button>
+        <button id="restart">重新制作 </button>
+     </div>
 
     <script>
         let main = document.querySelector('#main')
@@ -80,6 +174,16 @@
         let radio = document.querySelector('#radio')
         let changeRGb = document.querySelector('#changeRGb')
         let insideImageData
+
+        let width = canvas.width
+        let height = canvas.height
+        outctx.font = '15px Arial'
+        outctx.fillStyle = 'black'
+        inctx.font = '15px Arial'
+        inctx.fillStyle = 'black'
+        let textWidth = outctx.measureText('点击或者拖拽图片').width
+        outctx.fillText('点击或者拖拽图片',(width-textWidth)/2,height/2)
+        inctx.fillText('点击或者拖拽图片',(width-textWidth)/2,height/2)
 
         function photo(file,ctx,canvas,type){
             let read = new FileReader()
@@ -246,11 +350,15 @@
         outside.ondrop=(e)=>{
             e.preventDefault() 
             let file = e.dataTransfer.files[0]
+            outctx.clearRect(0,0,out.width,out.height)
+            rgb = null
             photo(file,outctx,out,'outside')
         }
         outside.addEventListener('click',async()=>{
             let filelist = await showOpenFilePicker() //会返回一个数组，储存着用户上传的文件
             let file = await filelist[0].getFile() //会返回一个file对象。
+            outctx.clearRect(0,0,out.width,out.height)
+            rgb = null
             photo(file,outctx,out,'outside')
         })
         inside.ondragover=(e)=>{
@@ -259,11 +367,13 @@
         inside.ondrop=(e)=>{
             e.preventDefault() 
             let file = e.dataTransfer.files[0]
+            inctx.clearRect(0,0,In.width,In.height)
             photo(file,inctx,In,'inside')
         }
         inside.addEventListener('click',async()=>{
             let filelist = await showOpenFilePicker() 
             let file = await filelist[0].getFile()
+            inctx.clearRect(0,0,In.width,In.height)
             photo(file,inctx,In,'inside')
         })
     </script>
