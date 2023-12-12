@@ -115,8 +115,8 @@
 </head>
 <body style="border: 0;margin: 0;">
     <div style="text-align: center;">
-        <p>温馨提示:<a style="margin: 4px;" href="https://juejin.cn/post/7304635193419972618">原理</a><a style="margin: 4px;" href="https://github.com/ChunXi666/ChunXi666.github.io">源码，点个star求求了</a>
-        里图变暗有益于隐藏。里图隐藏可以设置表图的rgb。如果想在朋友圈显示需要宽高一致且小于等于1080</p>
+        <p>温馨提示:最好用电脑打开。<a style="margin: 4px;" href="https://juejin.cn/post/7304635193419972618">原理</a><a style="margin: 4px;" href="https://github.com/ChunXi666/ChunXi666.github.io">源码，点个star求求了</a>
+        里图变暗有益于隐藏。想要里图隐藏可以设置表图的rgb。如果想在朋友圈显示需要宽高一致且小于等于1080。</p>
     </div>
     <div id="main">
         <div  class="container">
@@ -142,6 +142,7 @@
             <div class="insidediv" style="border: 1px black solid;">
                 <canvas id="canvas"></canvas>
             </div>
+            <button style="width: 100px;height: 20px;" id="wechat">微信朋友圈</button>
             宽:<span id="tankWidth" class="widthandheight"></span>
             高:<span id="tankHeight" class="widthandheight"></span> 
         </div>
@@ -150,11 +151,13 @@
             <div class="insidediv" style="background-color: black;">
             </div>    
         </div>
+        <canvas id="wechatcanvas" style="display: none;"></canvas>
     </div>
     <div id="btndiv" style="">
         <button id="btn">制作幻影坦克</button> 
         <button id="download">下载幻影坦克</button>
         <button id="restart">重新制作 </button>
+        <button id="copy">复制到剪切板</button>
      </div>
 
     <script>
@@ -177,6 +180,10 @@
         let changeRGb = document.querySelector('#changeRGb')
         let insideFile = document.querySelector('#insideFile')
         let outsideFile = document.querySelector('#outsideFile')
+        let wechat = document.querySelector('#wechat')
+        let wechatcanvas = document.querySelector('#wechatcanvas')
+        let wechatcanvasctx = wechatcanvas.getContext('2d')
+        let copy = document.querySelector('#copy')
         let insideImageData
 
         let width = canvas.width
@@ -188,6 +195,44 @@
         let textWidth = outctx.measureText('点击或者拖拽图片').width
         outctx.fillText('点击或者拖拽图片',(width-textWidth)/2,height/2)
         inctx.fillText('点击或者拖拽图片',(width-textWidth)/2,height/2)
+
+        wechat.addEventListener('click',()=>{
+            let width = canvas.width
+            let height = canvas.height
+            let length = Math.min(width,height)
+            if(width!=height){
+                document.querySelector('#tankWidth').innerHTML = length
+                document.querySelector('#tankHeight').innerHTML = length
+                ctx.drawImage(canvas,0,0,length,length)
+                if(width>height){
+                ctx.clearRect(height,0,width-height,height)  
+                }else{
+                ctx.clearRect(0,width,width,height-width)
+                }
+            }
+            if(length>1080){
+                wechatcanvas.width = 1080
+                wechatcanvas.height = 1080
+                wechatcanvasctx.drawImage(canvas,0,0,1080,1080)
+                canvas.width = 1080
+                canvas.height = 1080
+                ctx.drawImage(wechatcanvas,0,0,1080,1080)
+            }
+        }) //将宽高设置成一样的同时压缩至1080
+
+        copy.addEventListener('click',()=>{
+            canvas.toBlob(function(blob) {
+            // 创建包含图片的ClipboardItem对象
+            const item = new ClipboardItem({ 'image/png': blob });
+
+            // 将图片复制到剪贴板
+            navigator.clipboard.write([item]).then(function() {
+                console.log('图片已成功复制到剪贴板')
+            }).catch(function(error) {
+                console.error('无法复制图片到剪贴板:', error)
+            })
+            })
+        })
 
         function photo(file,ctx,canvas,type){
             let read = new FileReader()
